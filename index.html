@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mamute Cristalizações - Agendamentos</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="logo.png">
+  <!-- CONFIGURAÇÃO DO SUPABASE - ADICIONE SUAS CHAVES AQUI -->
+  <script>
+    // ⚠️ IMPORTANTE: Substitua estas variáveis pelas suas chaves do Supabase
+    // Veja o arquivo GUIA_SUPABASE.md para instruções
+    const SUPABASE_URL = 'https://ctmzgsvgqzqnmfeetdzh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0bXpnc3ZncXpxbm1mZWV0ZHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzMzY5MTQsImV4cCI6MjA3ODkxMjkxNH0._NoM_dhYqly-tpOPh1bNla-E8czu6oRKOaJSoSsECXo';
+  </script>
+  <!-- Importar a biblioteca do Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <!-- TELA DE LOGIN -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-container">
+      <div class="login-logo">
+        <img src="logo.png" alt="Mamute Cristalizações" class="login-logo-img">
+      </div>
+      <h1 class="login-title">Mamute Cristalizações</h1>
+      <p class="login-subtitle">Sistema de Agendamentos</p>
+      
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="loginUser">👤 Usuário</label>
+          <input 
+            id="loginUser" 
+            type="text" 
+            placeholder="Digite seu usuário" 
+            required
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">🔒 Senha</label>
+          <input 
+            id="loginPassword" 
+            type="password" 
+            placeholder="Digite sua senha" 
+            required
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit" class="btn-login">Entrar</button>
+        
+        <p id="loginError" class="login-error"></p>
+      </form>
+
+
+    </div>
+  </div>
+
+  <!-- APLICAÇÃO PRINCIPAL (OCULTA ATÉ LOGIN) -->
+  <div id="appScreen" class="app-screen hidden">
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="logo-wrap">
+        <img src="logo.png" alt="Mamute Cristalizações" class="logo-img">
+      </div>
+      <div class="title-wrap">
+        <h1>🐘 Mamute Cristalizações</h1>
+        <p class="subtitle">Sistema Inteligente de Agendamentos</p>
+      </div>
+      <div class="header-actions">
+        <button id="backupHeaderBtn" class="btn-backup-header">💾 Backup</button>
+        <button id="logoutBtn" class="btn-logout">🚪 Sair</button>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container">
+      <section class="controls">
+        <div class="filter">
+          <label for="filtroCategoria">🔍 Filtrar por Categoria</label>
+          <select id="filtroCategoria">
+            <option value="Todos">Todos os Serviços</option>
+            <option value="Limpeza de Vidro">Limpeza de Vidro</option>
+            <option value="Restauração">Restauração</option>
+            <option value="Pós-Obra">Pós-Obra</option>
+            <option value="Placa Solar">Placa Solar</option>
+            <option value="Limpeza de Piso">Limpeza de Piso</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+
+        <div class="btn-group">
+          <button id="calBtn" class="btn ghost">📅 Calendário</button>
+          <button id="exportBtn" class="btn ghost">📊 Exportar</button>
+          <button id="novoBtn" class="btn primary">✨ Novo Serviço</button>
+        </div>
+      </section>
+
+      <section id="lista" class="list-area">
+        <!-- Lista de serviços renderizada por JS -->
+      </section>
+    </main>
+
+    <!-- MODAL FORMULÁRIO (CRIAR/EDITAR) -->
+    <div id="modal" class="modal hidden">
+      <div class="modal-card">
+        <header class="modal-header">
+          <h2 id="modalTitle">✨ Novo Serviço</h2>
+          <button id="closeModal" class="close">✕</button>
+        </header>
+        <form id="formServico" class="form">
+          <label for="empresa">👤 Cliente / Empresa</label>
+          <input id="empresa" type="text" placeholder="Digite o nome do cliente" required>
+
+          <label for="data">📅 Data do Serviço (início)</label>
+          <input id="data" type="date" required>
+
+          <label for="hora">⏰ Hora</label>
+          <input id="hora" type="time" placeholder="Horário de início">
+
+          <label for="telefone">📱 Telefone do Cliente (WhatsApp)</label>
+          <input id="telefone" type="tel" placeholder="(11) 99999-9999 ou 11999999999">
+
+          <label for="duracao">⏱️ Duração (dias)</label>
+          <input id="duracao" type="number" min="1" value="1" required>
+
+          <label for="categoria">🏷️ Categoria</label>
+          <select id="categoria">
+            <option value="Limpeza de Vidro">Limpeza de Vidro</option>
+            <option value="Restauração">Restauração</option>
+            <option value="Pós-Obra">Pós-Obra</option>
+            <option value="Placa Solar">Placa Solar</option>
+            <option value="Limpeza de Piso">Limpeza de Piso</option>
+            <option value="Outros">Outros</option>
+          </select>
+
+          <label class="switch-label">
+            <input id="fidelizado" type="checkbox"> ⭐ Cliente fidelizado
+          </label>
+
+          <label for="obs">📝 Observações</label>
+          <textarea id="obs" placeholder="Adicione detalhes importantes..."></textarea>
+
+          <div class="modal-actions">
+            <button type="submit" class="btn primary wide">💾 Salvar Serviço</button>
+            <button type="button" id="cancelBtn" class="btn ghost wide">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL CALENDÁRIO -->
+    <div id="modalCalendario" class="modal hidden">
+      <div class="modal-card calendar-card">
+        <header class="modal-header">
+          <h2>📅 Calendário de Agendamentos</h2>
+          <button id="closeCal" class="close">✕</button>
+        </header>
+
+        <div class="calendar-controls">
+          <button id="prevMonth" class="small-btn">◀ Anterior</button>
+          <h3 id="calTitulo"></h3>
+          <button id="nextMonth" class="small-btn">Próximo ▶</button>
+        </div>
+
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </div>
+    </div>
+
+    <!-- MODAL DETALHES DO DIA -->
+    <div id="modalDia" class="modal hidden">
+      <div class="modal-card">
+        <header class="modal-header">
+          <h2 id="diaTitulo">📌 Serviços do dia</h2>
+          <button id="closeDia" class="close">✕</button>
+        </header>
+        <div id="listaDoDia" style="padding:20px;"></div>
+        <div class="modal-actions" style="padding: 0 20px 20px 20px;">
+          <button id="printDayBtn" class="btn ghost wide">🖨️ Imprimir</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">© 2025 Mamute Cristalizações - Sistema de Agendamentos Online</footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
